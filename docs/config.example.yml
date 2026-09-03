@@ -1,0 +1,10 @@
+
+email: test@example.com
+jobs:
+-   name: some-process
+    enable: true
+    command : ls /
+    mask: "*/2 * * * *"
+    verbose: false     # if true, emails on errors + success runs
+    log : /var/log/krono/some-process.log
+    email: some-process@example.com    

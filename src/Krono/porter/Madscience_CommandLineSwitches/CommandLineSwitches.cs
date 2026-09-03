@@ -91,12 +91,6 @@ namespace Madscience_CommandLineSwitches
     /// </summary>
     public class CommandLineSwitches 
     {
-        #region FIELDS
-
-        private string[] _args = new string[]{};
-
-        #endregion
-
         #region PROPERTIES
 
         /// <summary>
@@ -127,20 +121,12 @@ namespace Madscience_CommandLineSwitches
             this.Arguments.Add(new KeyValuePair<string, Argument>(argument.Id, argument));
         }
 
-        public void PrintState()
-        {
-            Console.Write("raw args:\n");
-            Console.Write(string.Join(" ", _args));
-        }
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="args">Raw command line args, such as those passed into your command line app.</param>
         public BindResponse Bind(string[] args, bool validate = true)
         {
-            _args = args;
-
             BindResponse response = new BindResponse();
 
             Regex switchLeadRegex = new Regex("^(-+)(.*)");
