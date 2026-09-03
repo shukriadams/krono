@@ -1,0 +1,17 @@
+name: builds binaries
+on: 
+  push:
+    tags:
+      - '*'
+jobs:
+
+    linux-x64:
+        runs-on: ubuntu-24.04
+        steps:
+        - uses: actions/checkout@v1
+        - name: builds linux-x64 binary and uploads to github
+          run: | 
+            cd build && chmod +x build.sh 
+            ./build.sh -b -t -p -r linux-x64
+          env:
+            GH_TOKEN: ${{ secrets.GH_TOKEN }}

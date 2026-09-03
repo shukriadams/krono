@@ -1,0 +1,10 @@
+{
+    "name" : "Krono",
+    "runtimes" : [ 6 ],
+    "author" : "Shukri Adams <mail@shukriadams.com",
+    "license": "MIT",
+    "packages": [
+        "github.shukriadams.commandLineSwitches@1.0.2",
+        "github.shukriadams.madscience_reflectionhelpers@0.0.1"
+    ]
+}
