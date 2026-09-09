@@ -1,3 +1,4 @@
 bin/
 obj/
 .vagrant/
+src/Krono/porter/YamlDotNet
