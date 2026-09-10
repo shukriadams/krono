@@ -1,5 +1,6 @@
 using System;
 using Krono.Porter_Packages.Madscience_CommandLineSwitches;
+using Krono.Porter_Packages.Madscience_CustomEnvironmentArgs;
 
 namespace Krono
 {
@@ -9,6 +10,11 @@ namespace Krono
         {
             try 
             {
+                CustomEnvironmentArgs customEnvironmentArgs = new CustomEnvironmentArgs { 
+                    Verbose = true
+                };
+                customEnvironmentArgs.FindAndApply();
+
                 Console.WriteLine("Krono");
 
                 CommandLineSwitches switches = new CommandLineSwitches();

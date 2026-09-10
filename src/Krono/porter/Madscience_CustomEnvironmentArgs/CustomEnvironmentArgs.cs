@@ -1,8 +1,13 @@
+//PORTER-WRAPPER!
+namespace Krono.Porter_Packages {
+//PORTER-WRAPPER!
+
+
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace MadScience
+namespace Madscience_CustomEnvironmentArgs
 {
     /// <summary>
     /// Loads env vars from an ".env" file found in app execution directory or in any parent directory. 
@@ -14,16 +19,27 @@ namespace MadScience
     {
         public string FileName {get;set;} = ".env";
 
+        public bool Verbose {get;set;} = false;
+
+        public int Traversed  {get;set;}
+
+        /// <summary>
+        /// Maximum number of levels to crawl up parent directories to find .env file. Default is -1
+        /// which is unlimited.
+        /// </summary>
+        public int MaximumTraversals {get;set;} = -1;
+
         /// <summary>
         /// Finds a .env file and loads its content as environment variables.
         /// </summary>
-        public void FindAndApply(bool verbose)
+        public void FindAndApply()
         {
             string envArgFilePath = null;
     
             // Crawl up directory tree from app start dir, look for .env file until reach disk root.
             // Necessary because basedirectory varies between web and CLI app.
             DirectoryInfo currentPath = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+            
             while (currentPath.Parent != null) 
             { 
                 if (File.Exists(Path.Combine(currentPath.FullName, this.FileName))) 
@@ -31,14 +47,19 @@ namespace MadScience
                     envArgFilePath = Path.Combine(currentPath.FullName, this.FileName);
                     break;
                 }
-                
+
+                if (this.MaximumTraversals != -1 && this.Traversed >= this.MaximumTraversals)
+                    break;
+
                 currentPath = currentPath.Parent;
+                this.Traversed ++;
             }
 
             if (envArgFilePath == null)
                 return;
 
-            Console.WriteLine($"{this.FileName} file found at {envArgFilePath}");
+            if (this.Verbose)
+                Console.WriteLine($"{this.FileName} file found at {envArgFilePath}");
 
             string fileContent = File.ReadAllText(envArgFilePath);
             fileContent = fileContent.Replace("\r\n", "\n");
@@ -55,11 +76,15 @@ namespace MadScience
                     continue;
 
                 Environment.SetEnvironmentVariable(match.Groups[1].Value, match.Groups[2].Value);
-                if (verbose)
-                    Console.WriteLine($"Set environment variable {match.Groups[1].Value}");
+                if (this.Verbose)
+                    Console.WriteLine($"Set environment variable \"{match.Groups[1].Value}\"");
             }
                 
         }
     }
 }
-    
+
+
+//PORTER-WRAPPER!
+}
+//PORTER-WRAPPER!

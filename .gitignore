@@ -2,3 +2,4 @@ bin/
 obj/
 .vagrant/
 src/Krono/porter/YamlDotNet
+src/Krono/porter/**/porter.json
