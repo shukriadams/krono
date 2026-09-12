@@ -8,7 +8,7 @@
         "github.shukriadams.madscience_reflectionhelpers@0.0.1",
         "github.shukriadams.madscience_customEnvironmentArgs@0.0.1",
         "github.shukriadams.Cronos@v0.13.0_porter",
-        "github.shukriadams.YamlDotNet@16.3.0",
+        "github.shukriadams.madscience_yamlLoader@0.0.1",
         "github.shukriadams.Shell_csharp@0.0.2"
     ]
 }

@@ -13,10 +13,13 @@ namespace Krono
         
         private DateTime _lastRun;
 
-        public void Start(string cronmask, string command)
+        public void Start(Job job)
         {
-            _cronExpression = CronExpression.Parse(cronmask);
+            _cronExpression = CronExpression.Parse(job.Mask);
             _lastRun = DateTime.UtcNow;
+            _running = true;
+
+            Console.WriteLine($"starting {job.Name}");
 
             new Thread(async delegate ()
             {
@@ -31,11 +34,14 @@ namespace Krono
                         if (nextUtc > DateTime.UtcNow)
                             continue;
 
+                        Console.WriteLine($"running {job.Name}");
+
                         _busy = true;
                         _lastRun = DateTime.UtcNow;
-                        Shell shell = new Shell(command);
 
+                        Shell shell = new Shell(job.Command);
                         int result = shell.Run();
+
                         // write output to log
                         if (result != 0)
                         {
@@ -44,15 +50,17 @@ namespace Krono
                     }
                     catch (Exception ex)
                     {
-                        //_log.LogError(ex, $"Unhandled daemon exception from {work.Method.DeclaringType.Name}");
                         Console.Write($"Unhandled exception : {ex}");
                     }
                     finally
                     {
                         _busy = false;
-                        Thread.Sleep(60000); // recheck cron tick every minute, no need to check more frequently given minute resolution of cronmask
+                        Thread.Sleep(5000); // recheck cron tick every 5 secs
                     }
                 }
+
+                Console.WriteLine($"Daemon for {job.Name} exiting");
+
             }).Start();
         }
     }

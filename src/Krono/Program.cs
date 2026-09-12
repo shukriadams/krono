@@ -40,6 +40,9 @@ namespace Krono
                     Version version = new Version();
                     version.Work();
                 }
+
+                DaemonMode dm = new DaemonMode();
+                dm.Work();
             }
             catch (Exception ex)
             {
