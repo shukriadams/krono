@@ -8,6 +8,10 @@ using System.Runtime.InteropServices;
 
 namespace MadScience_Shell
 {
+    public delegate void LogEvent(string logText);
+
+    public delegate void LogEventBuffered(IEnumerable<string> logRows);
+
     /// <summary>
     /// Crudely-cross platform shell wrapper. Tries to abstract away most of the .net quirks of running 
     /// shell commands, especially on linux. Can do with improvements, but has worked in production 
@@ -29,6 +33,16 @@ namespace MadScience_Shell
 
         public List<string> ErrLines { get; private set; } = new List<string>();
 
+        public LogEvent OnInfo;
+
+        public LogEvent OnError;
+
+        public LogEventBuffered OnInfoBuffered;
+
+        public LogEventBuffered OnErrorBuffered;
+        
+        public int LogBufferSize {get;set;} = 10;
+
         public string Out
         {
             get
@@ -45,6 +59,7 @@ namespace MadScience_Shell
             }  
         }
 
+        // in milliseconds
         public int Timeout { get; set; } = 10000;
         
         public string WorkingDirectory { get; set; }
@@ -93,6 +108,7 @@ namespace MadScience_Shell
             cmd.StartInfo.RedirectStandardError = true;
             cmd.StartInfo.CreateNoWindow = true;
             cmd.StartInfo.UseShellExecute = false;
+
             if (!string.IsNullOrEmpty(this.WorkingDirectory))
                 cmd.StartInfo.WorkingDirectory = this.WorkingDirectory;
             
@@ -108,11 +124,19 @@ namespace MadScience_Shell
                             if (e.Data == null)
                                 outputWaitHandle.Set();
                             else
-                                this.OutLines.Add(e.Data);
+                            {
+                                if (this.OnInfo != null)
+                                    this.OnInfo.Invoke(e.Data);
+
+                                this.Log(e.Data);
+                            }
                         }
                         catch (Exception ex)
                         {
-                            this.ErrLines.Add(e.ToString());
+                            if (this.OnError != null)
+                                this.OnError.Invoke(e.ToString());
+
+                            this.Error(e.ToString());
                         }
                     };
 
@@ -123,11 +147,19 @@ namespace MadScience_Shell
                             if (e.Data == null)
                                 errorWaitHandle.Set();
                             else
-                                this.ErrLines.Add(e.Data);
+                            {
+                                if (this.OnError != null)
+                                    this.OnError.Invoke(e.Data);
+
+                                this.Error(e.Data);
+                            }
                         }
                         catch (Exception ex)
                         {
-                            this.ErrLines.Add(ex.ToString());
+                            if (this.OnError != null)
+                                this.OnError.Invoke(ex.ToString());
+
+                            this.Error(ex.ToString());
                         }
                     };
 
@@ -136,16 +168,24 @@ namespace MadScience_Shell
                     cmd.BeginErrorReadLine();
 
                     if (cmd.WaitForExit(this.Timeout) && outputWaitHandle.WaitOne(this.Timeout) && errorWaitHandle.WaitOne(this.Timeout))
+                    {
+                        this.FlushLogBuffer();
+                        this.FlushErrorBuffer();
                         return cmd.ExitCode;
+                    }
                     else
                     {
-                        this.ErrLines.Add($"Timed out on command : {_command} after {this.Timeout} ms");
+                        this.Error($"Timed out on command : {_command} after {this.Timeout} ms");
+
+                        this.FlushLogBuffer();
+                        this.FlushErrorBuffer();
+
                         return 1;
                     }
                         
                 }
             }
-            else
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 cmd.Start();
                 cmd.StandardInput.Flush();
@@ -154,17 +194,75 @@ namespace MadScience_Shell
                 while (!cmd.StandardOutput.EndOfStream)
                 {
                     string line = cmd.StandardOutput.ReadLine();
-                    this.OutLines.Add(line);
+
+                    if (this.OnInfo != null)
+                        this.OnInfo.Invoke(line);
+
+                    this.Log(line);
                 }
 
                 while (!cmd.StandardError.EndOfStream)
                 {
                     string line = cmd.StandardError.ReadLine();
-                    this.ErrLines.Add(line);
+
+                    if (this.OnError != null)
+                        this.OnError.Invoke(line);
+
+                    this.Error(line);
                 }
+                
+                this.FlushLogBuffer();
+                this.FlushErrorBuffer();
 
                 return cmd.ExitCode;
             }
+            else
+            {
+                throw new Exception($"Unsupported os platform");
+            }
+        }
+
+        private void FlushLogBuffer()
+        {
+            if (this.OnInfoBuffered == null)
+                return;
+
+            lock(this.OutLines)
+            {
+                this.OnInfoBuffered.Invoke(this.OutLines.Take(this.OutLines.Count()));
+                this.OutLines = new List<string>();
+            }
+        }
+
+        private void FlushErrorBuffer()
+        {   
+            if (this.OnErrorBuffered == null)
+                return;
+
+            lock(this.ErrLines)
+            {
+                this.OnErrorBuffered.Invoke(this.ErrLines.Take(this.ErrLines.Count()));
+                this.ErrLines = new List<string>();
+            }
+        }
+
+        private void Log(string text)
+        {
+            lock(this.OutLines)
+                this.OutLines.Add(text);
+
+            if (this.OnInfoBuffered != null && this.OutLines.Count() > this.LogBufferSize)
+                this.FlushLogBuffer();
+        }
+
+        private void Error(string text)
+        {
+            lock(this.ErrLines)
+                this.ErrLines.Add(text);
+
+            if (this.OnErrorBuffered != null && this.ErrLines.Count() > this.LogBufferSize)
+                lock(this)
+                    this.OnErrorBuffered.Invoke(this.ErrLines.Take(this.ErrLines.Count()));
         }
 
         #endregion

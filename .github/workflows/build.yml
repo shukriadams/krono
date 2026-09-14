@@ -12,6 +12,6 @@ jobs:
         - name: builds linux-x64 binary and uploads to github
           run: | 
             cd build && chmod +x build.sh 
-            ./build.sh -b -t -p -r linux-x64
+            ./build.sh -b -t -p -i -r linux-x64
           env:
             GH_TOKEN: ${{ secrets.GH_TOKEN }}

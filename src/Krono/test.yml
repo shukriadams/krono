@@ -2,4 +2,6 @@ Title: something
 Jobs:
   - Name: test
     Mask: "* * * * *"
-    Command: ls -lh
+    LogPath: /vagrant/src/Krono/logs/info.log
+    ErrorLogPath: /vagrant/src/Krono/logs/error.log
+    Command: ls / -lh

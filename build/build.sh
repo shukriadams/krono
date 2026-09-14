@@ -5,6 +5,7 @@ set -e
 PUSH=0
 TEST=0
 BUILD=0
+INSTALL_PORTER=0
 ALLOWED_RUNTIMES=("linux-x64" "win-x64" "linux-arm64" "win-arm64")
 RUNTIME="linux-x64"
 HASH=""
@@ -14,6 +15,7 @@ while [ -n "$1" ]; do
     --push|-p) PUSH=1 ;;
     --test|-t) TEST=1 ;;
     --build|-b) BUILD=1 ;;
+    --install|-i) INSTALL_PORTER=1 ;;
     --runtime|-r) RUNTIME="${2#*=}" ;;
     --tag) TAG="${2#*=}" ;;
     --hash) HASH="${2#*=}" ;;
@@ -47,11 +49,16 @@ if [ $IS_IN_ARRAY -eq 0 ]; then
     exit 1;
 fi
 
+if [ $INSTALL_PORTER -eq 1 ]; then
+    wget https://github.com/shukriadams/porter/releases/download/0.0.2/porter_linux-x64 -O /usr/bin/porter
+fi
 
 if [ $BUILD -eq 1 ]; then
 
     # write hash + tag to currentVersion.txt in source, this will be displayed by web ui
     echo "$TAG (${HASH})" > ./../src/Krono/currentVersion.txt 
+
+    porter --install ./../src/Krono
 
     dotnet restore ./../src/Krono
 

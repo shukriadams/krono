@@ -1,5 +1,6 @@
 using Krono.Porter_Packages.Cronos;
 using Krono.Porter_Packages.MadScience_Shell;
+using System.IO;
 
 namespace Krono
 {
@@ -7,23 +8,47 @@ namespace Krono
     {
         private CronExpression _cronExpression;
         
-        private bool _running;
+        private bool _run;
         
         private bool _busy;
         
+        private Job _job;
+        
+        private Settings _settings;
+
         private DateTime _lastRun;
 
-        public void Start(Job job)
+        public Daemon(Job job, Settings settings)
         {
-            _cronExpression = CronExpression.Parse(job.Mask);
-            _lastRun = DateTime.UtcNow;
-            _running = true;
+            _job = job;
+            _settings= settings;
+        }
 
-            Console.WriteLine($"starting {job.Name}");
+        public void Start()
+        {
+            _cronExpression = CronExpression.Parse(_job.Mask);
+            _lastRun = DateTime.UtcNow;
+            _run = true;
+
+            if (!string.IsNullOrEmpty(_job.LogPath))
+            {
+                string baseDir = Path.GetDirectoryName(_job.LogPath);
+                if (!Directory.Exists(baseDir))
+                    Directory.CreateDirectory(baseDir);
+            }
+
+            if (!string.IsNullOrEmpty(_job.ErrorLogPath))
+            {
+                string baseDir = Path.GetDirectoryName(_job.ErrorLogPath);
+                if (!Directory.Exists(baseDir))
+                    Directory.CreateDirectory(baseDir);
+            }
+
+            Console.WriteLine($"Starting daemon for : {_job.Name}");
 
             new Thread(async delegate ()
             {
-                while (_running)
+                while (_run)
                 {
                     try
                     {
@@ -34,18 +59,43 @@ namespace Krono
                         if (nextUtc > DateTime.UtcNow)
                             continue;
 
-                        Console.WriteLine($"running {job.Name}");
-
                         _busy = true;
                         _lastRun = DateTime.UtcNow;
 
-                        Shell shell = new Shell(job.Command);
+                        Shell shell = new Shell(_job.Command);
+                        List<string> errors = new List<string>();
+
+                        if (!string.IsNullOrEmpty(_job.LogPath))
+                            shell.OnInfoBuffered = (IEnumerable<string> log) => { 
+                                File.AppendAllLines(_job.LogPath, log ); 
+                            };
+
+                        if (!string.IsNullOrEmpty(_job.ErrorLogPath))
+                            shell.OnErrorBuffered = (IEnumerable<string> log) =>{ 
+                                File.AppendAllLines(_job.ErrorLogPath, log ); 
+                                errors.AddRange(log);
+                            };
+
                         int result = shell.Run();
 
-                        // write output to log
-                        if (result != 0)
+                        if(!string.IsNullOrEmpty(_job.ReceiverAddress) && (result !=0 || _job.Verbose))
                         {
-                            // do error stuff here
+                            string subject = $"Job {_job.Name} passed.\n";
+                            string body = "";
+
+                            if (result != 0)
+                            {
+                                subject = $"Job {_job.Name} failed.\n" +
+                                    $"{string.Join("\n", errors)}";
+                            }
+
+                            IEmailAlert alert = new Sendmail(new Email { 
+                                SenderAddress = _settings.SenderAddress,
+                                ReceiverAddress = _settings.ReceiverAddress,
+                                Subject = subject,
+                                Body = body
+                            });
+
                         }
                     }
                     catch (Exception ex)
@@ -59,9 +109,14 @@ namespace Krono
                     }
                 }
 
-                Console.WriteLine($"Daemon for {job.Name} exiting");
+                Console.WriteLine($"Daemon for {_job.Name} exiting");
 
             }).Start();
+        }
+
+        public void Stop()
+        {
+            _run = false;
         }
     }
 }

@@ -7,6 +7,10 @@ namespace Krono
 
         public bool Enabled { get; set; }
 
+        public string ReceiverAddress { get; set; }
+        
+        public string SenderAddress { get; set; }
+
         public string IndentCollection<T>(IEnumerable<T> content)
         {
             string t = string.Empty;
