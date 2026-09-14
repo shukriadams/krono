@@ -36,7 +36,9 @@ namespace Krono
 
             Shell shell = new Shell($"ssmtp {_email.ReceiverAddress} < /tmp/sendmail_test.txt");
             int result = shell.Run();
-            if (result != 0)
+            if (result == 0)
+                Console.WriteLine($"Sent notification to {_email.ReceiverAddress}");
+            else
                 return new Response {
                     Description = $"Sendmail send failed, got {result} back : {shell.Err}"
                 };

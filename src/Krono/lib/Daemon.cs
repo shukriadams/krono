@@ -1,6 +1,7 @@
 using Krono.Porter_Packages.Cronos;
 using Krono.Porter_Packages.MadScience_Shell;
 using System.IO;
+using Microsoft.Extensions.Logging;
 
 namespace Krono
 {
@@ -18,10 +19,14 @@ namespace Krono
 
         private DateTime _lastRun;
 
+        private ILogger<Daemon> _logger;
+
         public Daemon(Job job, Settings settings)
         {
             _job = job;
-            _settings= settings;
+            _settings = settings;
+            LogProvider<Daemon> logProvider = new LogProvider<Daemon>();
+            _logger = logProvider.Create<Daemon>(job.Name);
         }
 
         public void Start()
@@ -43,8 +48,8 @@ namespace Krono
                 if (!Directory.Exists(baseDir))
                     Directory.CreateDirectory(baseDir);
             }
-
-            Console.WriteLine($"Starting daemon for : {_job.Name}");
+            
+            _logger.LogInformation($"Daemon starting");
 
             new Thread(async delegate ()
             {
@@ -58,6 +63,8 @@ namespace Krono
                         DateTime? nextUtc = _cronExpression.GetNextOccurrence(_lastRun);
                         if (nextUtc > DateTime.UtcNow)
                             continue;
+            
+                        _logger.LogInformation($"Run starting");
 
                         _busy = true;
                         _lastRun = DateTime.UtcNow;
@@ -77,30 +84,44 @@ namespace Krono
                             };
 
                         int result = shell.Run();
-
-                        if(!string.IsNullOrEmpty(_job.ReceiverAddress) && (result !=0 || _job.Verbose))
+                        
+                        _logger.LogInformation($"Run ended with result {result}");
+                        
+                        if(_settings.EmailNotifications && !string.IsNullOrEmpty(_job.ReceiverAddress) && (result !=0 || _job.Verbose))
                         {
+                            _logger.LogInformation("Processing email ... ");
+
                             string subject = $"Job {_job.Name} passed.\n";
-                            string body = "";
+                            string body = "nothing to report";
 
                             if (result != 0)
                             {
-                                subject = $"Job {_job.Name} failed.\n" +
-                                    $"{string.Join("\n", errors)}";
+                                subject = $"Job {_job.Name} failed";
+                                body = $"An error occurred, last log was: \n\n\n{string.Join("\n", errors)}";
                             }
 
                             IEmailAlert alert = new Sendmail(new Email { 
                                 SenderAddress = _settings.SenderAddress,
-                                ReceiverAddress = _settings.ReceiverAddress,
+                                ReceiverAddress = _job.ReceiverAddress,
                                 Subject = subject,
                                 Body = body
                             });
+
+                            Response sendResponse = alert.Send();
+                            if (sendResponse.Succeeded)
+                            {
+                                _logger.LogInformation("Notification email sent");
+                            }
+                            else 
+                            {
+                                _logger.LogError($"Failed to send notification email sent {sendResponse.Description}");
+                            }
 
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.Write($"Unhandled exception : {ex}");
+                        _logger.LogError(ex, $"Unexpected error");
                     }
                     finally
                     {
@@ -109,7 +130,7 @@ namespace Krono
                     }
                 }
 
-                Console.WriteLine($"Daemon for {_job.Name} exiting");
+                _logger.LogInformation($"Daemon for {_job.Name} exiting");
 
             }).Start();
         }

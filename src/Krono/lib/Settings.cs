@@ -9,6 +9,8 @@ namespace Krono
 
         public string ReceiverAddress { get; set; }
         
+        public bool EmailNotifications { get; set; } = true;
+
         public string SenderAddress { get; set; }
 
         public string IndentCollection<T>(IEnumerable<T> content)

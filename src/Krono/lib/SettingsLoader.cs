@@ -32,7 +32,11 @@ namespace Krono
                     Exception = response.Exception
                 };
 
-            // ensure required values are present
+            if (string.IsNullOrEmpty(response.Payload.SenderAddress))
+            {
+                response.Payload.EmailNotifications = false;
+                Console.WriteLine("SenderAddress not set, email notifications force disabled.");
+            }
 
             // process settings, applie defaults etc
             foreach(Job job in response.Payload.Jobs)

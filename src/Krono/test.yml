@@ -1,7 +1,11 @@
 Title: something
+SenderAddress: {{.env.SENDER_ADDRESS}}
+EmailNotifications: true
 Jobs:
   - Name: test
-    Mask: "* * * * *"
+    Mask: "*/10 * * * *"
+    Verbose: false
+    ReceiverAddress: {{.env.RECEIVER_ADDRESS}}
     LogPath: /vagrant/src/Krono/logs/info.log
     ErrorLogPath: /vagrant/src/Krono/logs/error.log
     Command: ls / -lh
