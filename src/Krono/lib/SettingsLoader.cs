@@ -34,6 +34,10 @@ namespace Krono
                 Console.WriteLine("SenderAddress not set, email notifications force disabled.");
             }
 
+            //remove chars not supported by linux fs
+            foreach(Job job in response.Payload.Jobs)
+                job.Name = job.Name.Replace("/", string.Empty);
+
             // ensure job names are set
             if (response.Payload.Jobs.Any(j => string.IsNullOrEmpty(j.Name)))
                 return new SettingsLoadResponse { Description = "One or more have have no \"Name\" value. Unique names are required for all jobs." };
@@ -46,11 +50,17 @@ namespace Krono
 
             // process settings, apply defaults, fallbacks etc
             foreach(Job job in response.Payload.Jobs)
+            {
                 if (string.IsNullOrEmpty(job.ReceiverAddress))
                     // set fallback email address
                     job.ReceiverAddress = response.Payload.ReceiverAddress;
 
-            return new SettingsLoadResponse{ 
+                // global disable will force disable all jobs
+                if (!response.Payload.Enabled)
+                    job.Enabled = false;
+            }
+
+            return new SettingsLoadResponse { 
                 Succeeded = true, 
                 Settings = response.Payload };
         }
