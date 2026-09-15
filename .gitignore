@@ -1,9 +1,7 @@
 bin/
 obj/
 .vagrant/
-src/Krono/porter/YamlDotNet
-src/Krono/porter/**/porter.json
-src/Krono/porter/Madscience_YamlLoader
+src/Krono/porter/
 src/Krono/.env
 src/Krono/logs/
 src/Krono/log/
