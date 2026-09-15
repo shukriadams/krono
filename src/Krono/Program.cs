@@ -10,13 +10,14 @@ namespace Krono
         {
             try 
             {
+                Console.WriteLine("Krono - the portable cron runner");
+
                 CustomEnvironmentArgs customEnvironmentArgs = new CustomEnvironmentArgs { 
                     Verbose = true
                 };
                 customEnvironmentArgs.FindAndApply();
 
-                Console.WriteLine("Krono");
-
+ 
                 CommandLineSwitches switches = new CommandLineSwitches();
                 
                 switches.Add(new Argument("version", typeof(string)) { LongName = "version", ShortName = "v", IsExclusive = true });
@@ -54,8 +55,9 @@ namespace Krono
                 // from here on, all functions rely on settings, so load settings now
                 SettingsLoader settingsLoader = new SettingsLoader();
                 SettingsLoadResponse settingsReponse = settingsLoader.Load();
-                if (settingsReponse.Succeeded)
+                if (!settingsReponse.Succeeded)
                 {
+                    Console.WriteLine("Config error:");
                     Console.WriteLine(settingsReponse.Description);
                     Console.WriteLine(settingsReponse.Exception);
                     return;

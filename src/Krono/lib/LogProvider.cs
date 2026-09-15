@@ -7,10 +7,20 @@ namespace Krono
 {
     public class LogProvider<T>
     {
-        public Microsoft.Extensions.Logging.ILogger<T> Create<T>(string jobName)
+        private Settings _settings;
+
+        public LogProvider(Settings settings)
+        {
+            _settings = settings;
+        }
+
+        /// <summary>
+        /// Creates a logger file for a job
+        /// </summary>
+        public Microsoft.Extensions.Logging.ILogger<T> CreateJobLog<T>(string jobName)
         {
             LogLevel logLevel = LogLevel.Information;
-            string logPath = $"./logs/{jobName}/internal-.txt";
+            string logPath = Path.Join(_settings.LogRoot, jobName, "log-.txt");
 
             Serilog.Core.Logger fileLogger = new LoggerConfiguration()
                 .MinimumLevel.Is((LogEventLevel)Enum.Parse(typeof(LogEventLevel), logLevel.ToString()))

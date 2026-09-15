@@ -1,8 +1,10 @@
 namespace Krono
 {
 
-    public class Settings
+    public class Settings : SettingsBase
     {
+        #region PROPERTIES
+
         public IEnumerable<Job> Jobs { get; set; } = new Job [] {};
 
         public bool Enabled { get; set; }
@@ -13,26 +15,8 @@ namespace Krono
 
         public string SenderAddress { get; set; }
 
-        public string IndentCollection<T>(IEnumerable<T> content)
-        {
-            string t = string.Empty;
+        public string LogRoot { get; set; } = "./var/log/krono";
 
-            foreach(object item in content)
-            {
-                string[] rows = item.ToString().Split("\n");
-                foreach(string row in rows)
-                    t += $"\t{row}\n";
-            }
-
-            return t;
-        }
-
-        public override string ToString()
-        {
-            return "" +
-                $"Enabled : {this.Enabled}\n" +
-                $"Jobs : \n" +
-                $"{IndentCollection<Job>(this.Jobs)}";
-        }
+        #endregion 
     }
 }

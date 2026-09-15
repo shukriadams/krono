@@ -1,6 +1,9 @@
 namespace Krono
 {
-    public class BaseSettings
+    /// <summary>
+    /// 
+    /// </summary>
+    public class SettingsBase
     {
         public string SettingsPath {get;set;} = "settings.yml";
     }

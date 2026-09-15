@@ -5,8 +5,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Krono
 {
+    /// <summary>
+    /// Wraps the background thread that executes a cron job using the timer mask.
+    /// </summary>
     public class Daemon
     {
+        #region FIELDS
+
         private CronExpression _cronExpression;
         
         private bool _run;
@@ -21,33 +26,27 @@ namespace Krono
 
         private ILogger<Daemon> _logger;
 
+        #endregion
+
+        #region CTORS
+
         public Daemon(Job job, Settings settings)
         {
             _job = job;
             _settings = settings;
-            LogProvider<Daemon> logProvider = new LogProvider<Daemon>();
-            _logger = logProvider.Create<Daemon>(job.Name);
+            LogProvider<Daemon> logProvider = new LogProvider<Daemon>(settings);
+            _logger = logProvider.CreateJobLog<Daemon>(job.Name);
         }
+
+        #endregion
+        
+        #region METHODS
 
         public void Start()
         {
             _cronExpression = CronExpression.Parse(_job.Mask);
             _lastRun = DateTime.UtcNow;
             _run = true;
-
-            if (!string.IsNullOrEmpty(_job.LogPath))
-            {
-                string baseDir = Path.GetDirectoryName(_job.LogPath);
-                if (!Directory.Exists(baseDir))
-                    Directory.CreateDirectory(baseDir);
-            }
-
-            if (!string.IsNullOrEmpty(_job.ErrorLogPath))
-            {
-                string baseDir = Path.GetDirectoryName(_job.ErrorLogPath);
-                if (!Directory.Exists(baseDir))
-                    Directory.CreateDirectory(baseDir);
-            }
             
             _logger.LogInformation($"Daemon starting");
 
@@ -72,16 +71,14 @@ namespace Krono
                         Shell shell = new Shell(_job.Command);
                         List<string> errors = new List<string>();
 
-                        if (!string.IsNullOrEmpty(_job.LogPath))
-                            shell.OnInfoBuffered = (IEnumerable<string> log) => { 
-                                File.AppendAllLines(_job.LogPath, log ); 
-                            };
+                        shell.OnInfo = (string log) => { 
+                            _logger.LogInformation(log);
+                        };
 
-                        if (!string.IsNullOrEmpty(_job.ErrorLogPath))
-                            shell.OnErrorBuffered = (IEnumerable<string> log) =>{ 
-                                File.AppendAllLines(_job.ErrorLogPath, log ); 
-                                errors.AddRange(log);
-                            };
+                        shell.OnError = (string log) =>{ 
+                            errors.Add(log);
+                            _logger.LogError(log);
+                        };
 
                         int result = shell.Run();
                         
@@ -109,19 +106,15 @@ namespace Krono
 
                             Response sendResponse = alert.Send();
                             if (sendResponse.Succeeded)
-                            {
                                 _logger.LogInformation("Notification email sent");
-                            }
                             else 
-                            {
                                 _logger.LogError($"Failed to send notification email sent {sendResponse.Description}");
-                            }
 
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"Unexpected error");
+                        _logger.LogCritical(ex, $"Unexpected error");
                     }
                     finally
                     {
@@ -135,9 +128,29 @@ namespace Krono
             }).Start();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void Stop()
         {
             _run = false;
         }
+
+        /// <summary>
+        /// Writes to file, must not fail
+        /// </summary>
+        private void AppendToLog(string path, IEnumerable<string> lines)
+        {
+            try 
+            {
+                File.AppendAllLines(path, lines); 
+            } 
+            catch(Exception ex)
+            {
+                _logger.LogCritical($"Error writing to log file {path}", ex);
+            }
+        }
+
+        #endregion
     }
 }

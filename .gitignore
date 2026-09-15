@@ -6,3 +6,4 @@ src/Krono/porter/**/porter.json
 src/Krono/porter/Madscience_YamlLoader
 src/Krono/.env
 src/Krono/logs/
+src/Krono/log/

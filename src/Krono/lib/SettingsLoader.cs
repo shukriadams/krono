@@ -5,7 +5,6 @@ using Krono.Porter_Packages.Madscience_YamlLoader;
 
 namespace Krono
 {
-
     public class SettingsLoader
     {
         public SettingsLoadResponse Load()
@@ -38,13 +37,25 @@ namespace Krono
                 Console.WriteLine("SenderAddress not set, email notifications force disabled.");
             }
 
-            // process settings, applie defaults etc
+            // ensure job names are set
+            if (response.Payload.Jobs.Any(j => string.IsNullOrEmpty(j.Name)))
+                return new SettingsLoadResponse { Description = "One or more have have no \"Name\" value. Unique names are required for all jobs." };
+
+            // ensure job names unique
+            if (!response.Payload.Jobs.Select(job => job.Name)
+                .GroupBy(name => name)
+                .All(name => name.Count() == 1))
+                    return new SettingsLoadResponse { Description = "One or more \"Name\" values appear more than once. Names must be unique." };
+
+            // process settings, apply defaults, fallbacks etc
             foreach(Job job in response.Payload.Jobs)
                 if (string.IsNullOrEmpty(job.ReceiverAddress))
                     // set fallback email address
                     job.ReceiverAddress = response.Payload.ReceiverAddress;
 
-            return new SettingsLoadResponse{ Settings = response.Payload };
+            return new SettingsLoadResponse{ 
+                Succeeded = true, 
+                Settings = response.Payload };
         }
     }
 }
