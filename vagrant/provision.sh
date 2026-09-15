@@ -12,6 +12,11 @@ sudo apt install dotnet-sdk-6.0 -y
 # altecover report generator
 dotnet tool install --global dotnet-reportgenerator-globaltool --version 4.1.5
 
+# docker
+sudo apt install docker.io -y
+sudo apt install docker-compose -y
+sudo usermod -aG docker vagrant
+
 # set up mail send
 sudo apt-get install ssmtp -y
 

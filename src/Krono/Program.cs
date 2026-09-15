@@ -91,14 +91,13 @@ namespace Krono
                     TestEmail testEmail = new TestEmail();
                     testEmail.Work(switches.Get<string>("receiver"), settingsReponse.Settings);
                     return;
-                    
                 }
 
                 if (command == "daemon")
                 {
                     Console.WriteLine("Starting in daemon mode");
-                    DaemonMode dm = new DaemonMode();
-                    dm.Work(settingsReponse.Settings);
+                    DaemonMode daemonMode = new DaemonMode();
+                    daemonMode.Work(settingsReponse.Settings);
                 }
 
                 if (command == null)

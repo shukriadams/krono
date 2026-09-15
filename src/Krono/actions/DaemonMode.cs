@@ -17,6 +17,12 @@ namespace Krono
         /// </summary>
         public void Work(Settings settings)
         {
+            if (!settings.Jobs.Any())
+            {
+                Console.WriteLine("No jobs defined in settings, exiting");
+                return;
+            }
+
             foreach(Job job in settings.Jobs)
             {
                 Daemon daemon = new Daemon(job, settings);

@@ -11,11 +11,11 @@ namespace Krono
 
         public string ReceiverAddress { get; set; }
         
-        public bool EmailNotifications { get; set; }
+        public bool EmailNotifications { get; set; } 
 
         public string SenderAddress { get; set; }
 
-        public string LogRoot { get; set; } = "./var/log/krono";
+        public string LogRoot { get; set; } = "/var/log/krono";
 
         #endregion 
     }

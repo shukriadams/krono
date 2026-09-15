@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!-- enable invariant mode to prevent app from trying to pull globalization
+         settings from OS, which will fail as dotnet isn't a requirement -->
+    <InvariantGlobalization>true</InvariantGlobalization>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
