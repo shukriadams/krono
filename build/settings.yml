@@ -1,0 +1,4 @@
+Jobs:
+  - Name: simple job
+    Mask: "* * * * *"
+    Command: echo "hello from simple job"

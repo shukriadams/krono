@@ -8,3 +8,4 @@ src/Krono/.env
 src/Krono/logs/
 src/Krono/log/
 publish/
+docker/logs/

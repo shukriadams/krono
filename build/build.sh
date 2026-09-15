@@ -5,6 +5,8 @@ set -e
 PUSH=0
 TEST=0
 BUILD=0
+DOCKER_BUILD=0
+DOCKER_PUSH=0
 INSTALL_PORTER=0
 ALLOWED_RUNTIMES=("linux-x64" "win-x64" "linux-arm64" "win-arm64")
 RUNTIME="linux-x64"
@@ -15,6 +17,8 @@ while [ -n "$1" ]; do
     --push|-p) PUSH=1 ;;
     --test|-t) TEST=1 ;;
     --build|-b) BUILD=1 ;;
+    --docker|-d) DOCKER_BUILD=1 ;;
+    --dockerpush) DOCKER_PUSH=1 ;;
     --install|-i) INSTALL_PORTER=1 ;;
     --runtime|-r) RUNTIME="${2#*=}" ;;
     --tag) TAG="${2#*=}" ;;
@@ -65,7 +69,7 @@ if [ $BUILD -eq 1 ]; then
     dotnet publish ./../src/Krono/Krono.csproj \
         --configuration Release \
         --runtime $RUNTIME \
-        -o ./../publish \
+        -o ./publish \
         -p:PublishReadyToRun=true \
         -p:PublishSingleFile=true \
         -p:PublishTrimmed=true \
@@ -76,11 +80,28 @@ fi
 if [ $TEST -eq 1 ]; then
     echo "testing ... "
     
-    ./../publish/krono -v
+    ./publish/Krono -v
 
     echo "test passed"
 fi
 
+if [ $DOCKER_BUILD -eq 1 ]; then
+    docker build -t shukriadams/krono .
+
+    STATUS=$(docker run shukriadams/krono:latest krono --version) 
+    if [[ "$STATUS" == *"version :"* ]]; then
+        echo "container test passed with string ${STATUS}"
+    else
+        echo "container test returned unexpected value ${STATUS}"
+        exit 1
+    fi
+fi
+
+if [ $DOCKER_PUSH -eq 1 ]; then
+    echo "uploading docker image"
+    docker login -u $DOCKER_USER -p $DOCKER_PASS 
+    docker push shukriadams/krono:$TAG  
+fi
 
 if [ $PUSH -eq 1 ]; then
 
@@ -89,10 +110,10 @@ if [ $PUSH -eq 1 ]; then
     # artefact metadata : read (unsure)
     # contents : write (confirmed)
     
-    echo "uploading to github"
+    echo "uploading binaries to github"
 
     if [ $RUNTIME = "linux-x64" ] ; then
-        filename=./../publish/krono
+        filename=./publish/krono
         EXTENSION=""    
     fi
 
@@ -119,4 +140,5 @@ if [ $PUSH -eq 1 ]; then
     GH_ASSET="https://uploads.github.com/repos/$repo/releases/$id/assets?name=$(basename $NAME)"
     curl --data-binary @"$filename" -H "Authorization: token $GH_TOKEN" -H "Content-Type: application/octet-stream" $GH_ASSET
 
-fi  
+fi
+
