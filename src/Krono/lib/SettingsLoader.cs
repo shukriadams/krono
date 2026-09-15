@@ -7,13 +7,10 @@ namespace Krono
 {
     public class SettingsLoader
     {
-        public SettingsLoadResponse Load()
+        public SettingsLoadResponse Load(string filePath)
         {
-            // check if config file exists
-            string filePath = "./test.yml"; // 
-
             if (!File.Exists(filePath))
-                return new SettingsLoadResponse { Description = "Config file not found, exiting"};
+                return new SettingsLoadResponse { Description = $"Settings file not found at path {filePath}, exiting"};
 
             string rawYaml = File.ReadAllText(filePath);
 

@@ -11,7 +11,7 @@ namespace Krono
 
         public string ReceiverAddress { get; set; }
         
-        public bool EmailNotifications { get; set; } = true;
+        public bool EmailNotifications { get; set; }
 
         public string SenderAddress { get; set; }
 

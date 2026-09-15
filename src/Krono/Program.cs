@@ -20,6 +20,7 @@ namespace Krono
  
                 CommandLineSwitches switches = new CommandLineSwitches();
                 
+                switches.Add(new Argument("settings", typeof(string)) { LongName = "settings", ShortName = "s" });
                 switches.Add(new Argument("version", typeof(string)) { LongName = "version", ShortName = "v", IsExclusive = true });
                 switches.Add(new Argument("mailtest", typeof(string)) { LongName = "mailtest", ShortName = "m", IsExclusive = true });
                 switches.Add(new Argument("daemon", typeof(string)) { LongName = "daemon", ShortName = "d", IsExclusive = true });
@@ -52,14 +53,28 @@ namespace Krono
                     return;
                 }
                 
-                // from here on, all functions rely on settings, so load settings now
+                // from here on, all functions rely on settings
+                // ensure we have a path to settings files
+                string settingsPath = null;
+                if (switches.IsSet("settings"))
+                    settingsPath = switches.Get<string>("settings");
+                
+                if (settingsPath == null)
+                    settingsPath = Environment.GetEnvironmentVariable("KRONO_SETTINGS_PATH");
+
+                if (string.IsNullOrEmpty(settingsPath))
+                {
+                    Console.WriteLine("Error : settings path required, use --settings|-s, or KRONO_SETTINGS_PATH environmental variable.");
+                    return;
+                }
+
                 SettingsLoader settingsLoader = new SettingsLoader();
-                SettingsLoadResponse settingsReponse = settingsLoader.Load();
+                SettingsLoadResponse settingsReponse = settingsLoader.Load(settingsPath);
                 if (!settingsReponse.Succeeded)
                 {
-                    Console.WriteLine("Config error:");
                     Console.WriteLine(settingsReponse.Description);
-                    Console.WriteLine(settingsReponse.Exception);
+                    if (settingsReponse.Exception != null)
+                        Console.WriteLine(settingsReponse.Exception);
                     return;
                 }
 

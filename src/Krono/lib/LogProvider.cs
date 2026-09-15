@@ -21,6 +21,7 @@ namespace Krono
         {
             LogLevel logLevel = LogLevel.Information;
             string logPath = Path.Join(_settings.LogRoot, jobName, "log-.txt");
+            logPath = logPath.Replace(" ", "_");
 
             Serilog.Core.Logger fileLogger = new LoggerConfiguration()
                 .MinimumLevel.Is((LogEventLevel)Enum.Parse(typeof(LogEventLevel), logLevel.ToString()))
