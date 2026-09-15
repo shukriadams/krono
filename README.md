@@ -1,11 +1,12 @@
 # Krono
 
-A simple cron-like runner that works in a Docker container with zero interaction. Available as a single drop-and-run binary with no dependencies. 
+A simple cron-like runner that works in a Docker container with zero interaction. Available as a single drop-and-run binary with no dependencies, as well as in a Docker container. 
+
+Why? It is unnecessarily complicated to run `cron` in a container. Krono lets you run cronjobs on a system, using a static config file, without having to change the host machine's cron state.
 
 ## Install
 
-Download a binary for your system from the releases page, make it executable 
-and run it directly.
+Download a binary for your system from the releases page, make it executable and run it directly.
 
 To start krono in daemon mode create a config file and run
 
