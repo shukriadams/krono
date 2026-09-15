@@ -116,7 +116,7 @@ if [ $PUSH -eq 1 ]; then
     echo "uploading binaries to github"
 
     if [ $RUNTIME = "linux-x64" ] ; then
-        filename=./publish/krono
+        filename=./publish/Krono
         EXTENSION=""    
     fi
 
