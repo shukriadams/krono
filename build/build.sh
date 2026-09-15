@@ -54,7 +54,8 @@ if [ $IS_IN_ARRAY -eq 0 ]; then
 fi
 
 if [ $INSTALL_PORTER -eq 1 ]; then
-    wget https://github.com/shukriadams/porter/releases/download/0.0.2/porter_linux-x64 -O /usr/bin/porter
+    wget https://github.com/shukriadams/porter/releases/download/0.0.2/porter_linux-x64 -O ~/porter
+    chmod +x ~/porter
 fi
 
 if [ $BUILD -eq 1 ]; then
@@ -62,7 +63,7 @@ if [ $BUILD -eq 1 ]; then
     # write hash + tag to currentVersion.txt in source, this will be displayed by web ui
     echo "$TAG (${HASH})" > ./../src/Krono/currentVersion.txt 
 
-    porter --install ./../src/Krono
+    ~./porter --install ./../src/Krono
 
     dotnet restore ./../src/Krono
 
