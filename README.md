@@ -1,22 +1,30 @@
 # Krono
 
-A simple cron-like runner that can run in a Docker container. Does not require interactive crontab interaction. Single binary and easy
-to install.
+A simple cron-like runner that works in a Docker container with zero interaction. Available as a single drop-and-run binary with no dependencies. 
 
 ## Install
 
-Download a binary for your system from the releases page, make it executable and run it directly. Krono
-has no dependencies and is fully portable.
+Download a binary for your system from the releases page, make it executable 
+and run it directly.
 
-You can also run Krono directly as a Docker container.
+To start krono in daemon mode create a config file and run
 
-## Run
+    krono --daemon --settings /path/to/config.yml 
 
-To start krono in daemon mode run
+## Docker
 
-    krono --settings /path/to/config.yml --daemon
+Krono is made to be run in a docker container. You can build it into your own image (see the project's own [Dockerfile](./build/Dockerfile) to see how to set it up), or run the project's own image(`shukriadams/krono`), here's an example compose 
 
-You can also use the `KRONO_SETTINGS_PATH` environment variable to pass in the settings path.
+    services:
+    kronos:
+        image: shukriadams/krono:0.0.1
+        volumes:
+        - ./settings.yml:/opt/krono/settings.yml
+        - ./logs:/var/log/krono:rw
+
+Note that we're passing in a settings yml file, and a directory for Krono to write its logs to. Make sure that the logs directory is owned by user 1001 
+    
+    chown -R 1001 ./logs
 
 ## Config
 
@@ -30,16 +38,7 @@ Jobs are configured in a single Yaml file with the following basic format
         Mask: "*/10 * * * *"
         Command: ls / -lh
 
-### Environment variables
-
-Krono supports whatever environment variables you pass to it or the container it runs in. Simply reference
-these in `Command: <your calls here> $SOME_ENV_VAR` as you would any shell command.
-
-### Email alerts
-
-Krono supports sending email via sendmail. Sendmail should be pre-configured and working from the command line. You can test email sending directly by running
-
-    krono --mailtest --receiver receiver@example.com
+See [config.md](./docs/CONFIG.md) for more detailed documentation.
 
 ## License
 
