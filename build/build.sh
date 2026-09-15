@@ -101,7 +101,9 @@ fi
 if [ $DOCKER_PUSH -eq 1 ]; then
     echo "uploading docker image"
     docker login -u $DOCKER_USER -p $DOCKER_PASS 
-    docker push shukriadams/krono:$TAG  
+
+    docker tag shukriadams/krono:latest shukriadams/krono:$TAG  
+    docker push shukriadams/krono:$TAG
 fi
 
 if [ $PUSH -eq 1 ]; then
