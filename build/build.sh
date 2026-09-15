@@ -63,7 +63,7 @@ if [ $BUILD -eq 1 ]; then
     # write hash + tag to currentVersion.txt in source, this will be displayed by web ui
     echo "$TAG (${HASH})" > ./../src/Krono/currentVersion.txt 
 
-    ~./porter --install ./../src/Krono
+    ~/porter --install ./../src/Krono
 
     dotnet restore ./../src/Krono
 
