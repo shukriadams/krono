@@ -12,7 +12,7 @@ To start krono in daemon mode create a config file and run
 
     krono --daemon --settings /path/to/config.yml 
 
-Krono writes all its logs to /var/log/krono by default. Create this directory and chown to whatever use you run Krono with. Job logs are partitioned by name within this directory.
+Krono writes all its logs to `/var/log/krono` by default. Create this directory and chown to whatever use you run Krono with. Job logs are partitioned by name within this directory.
 
 ## Docker
 
