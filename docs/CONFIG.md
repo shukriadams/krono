@@ -55,3 +55,12 @@ The full settings Yaml spec is
         ReceiverAddress: <string> Email address to send alerts to. If not set defaults to global 
                                   ReceiverAddress value. If empty, no alerts will be sent for this job. 
                                   If this and global ReceiverAddress set, this will take precedence. Optional.
+
+## Docker
+
+Note that on older versions of Docker, Krono's container image can fail at launch with the error `Failed to create CoreCLR, HRESULT: 0x80070008`. To get around this error you either need to upgrade your Docker version, or relax container security options with `--security-opt seccomp=unconfined` for Docker run or for compose:
+
+    security_opt:
+      - seccomp:unconfined
+
+      
