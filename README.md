@@ -19,7 +19,7 @@ Krono writes all its logs to `/var/log/krono` by default. Create this directory 
 Krono is made to be run in a docker container. You can build it into your own image (see the project's own [Dockerfile](./build/Dockerfile) to see how to set it up), or run the project's own image(`shukriadams/krono`), here's an example compose 
 
     services:
-    kronos:
+    krono:
         image: shukriadams/krono:0.0.1
         volumes:
         - ./settings.yml:/opt/krono/settings.yml
