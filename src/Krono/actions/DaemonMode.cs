@@ -10,7 +10,15 @@ namespace Krono
         /// <summary>
         /// 
         /// </summary>
-        public IList<Daemon> Daemons = new List<Daemon>();
+        private IList<Daemon> _daemons = new List<Daemon>();
+
+        public void StopAll()
+        {
+            foreach(Daemon daemon in _daemons)
+            {
+                daemon.Stop();
+            }
+        }
 
         /// <summary>
         /// 
@@ -25,15 +33,17 @@ namespace Krono
 
             foreach(Job job in settings.Jobs)
             {
-                if (!job.Enabled){
+                if (job.Enabled)
+                {
                     Console.WriteLine($"Job {job.Name} disabled, skipping start");
                     continue;
                 }
 
                 Daemon daemon = new Daemon(job, settings);
                 daemon.Start();
+                Console.WriteLine($"Job {job.Name} started");
 
-                this.Daemons.Add(daemon);
+                _daemons.Add(daemon);
             }
         }
     }    

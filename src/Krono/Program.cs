@@ -98,7 +98,15 @@ namespace Krono
                     Console.WriteLine("Starting in daemon mode");
                     DaemonMode daemonMode = new DaemonMode();
                     daemonMode.Work(settingsReponse.Settings);
+
+                    AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
+                    {
+                        daemonMode.StopAll();
+                    };
+
                 }
+               
+                
 
                 if (command == null)
                 {

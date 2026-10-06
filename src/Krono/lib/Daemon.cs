@@ -50,7 +50,7 @@ namespace Krono
             
             _logger.LogInformation($"Daemon starting");
 
-            new Thread(async delegate ()
+            Thread thread = new Thread(async delegate ()
             {
                 while (_run)
                 {
@@ -125,7 +125,9 @@ namespace Krono
 
                 _logger.LogInformation($"Daemon for {_job.Name} exiting");
 
-            }).Start();
+            });
+            thread.IsBackground = true;
+            thread.Start();
         }
 
         /// <summary>
